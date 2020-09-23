@@ -13,9 +13,11 @@ function addReactions(msg, reactions) {
     for (let i = 0; i < reactions.length; i++) {
         let emoji = reactions[i];
         if (emoji.charAt(0) === 'c') {
-            emoji = msg.client.emojis.resolveIdentifier(reactions[i].substring(1)).catch(() => {
-                return "💔";
-            });
+            try {
+            emoji = msg.client.emojis.resolveIdentifier(reactions[i].substring(1));
+            } catch (e) {
+                emoji = "💔";
+            }
         }
         msg.react(emoji);
     }
