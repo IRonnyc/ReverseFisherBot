@@ -1,4 +1,4 @@
-#!/usr/bbin/nodejs
+#!/usr/bin/nodejs
 
 const config = require('./config.json');
 
