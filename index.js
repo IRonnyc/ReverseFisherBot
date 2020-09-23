@@ -7,6 +7,9 @@ const client = new Discord.Client();
 
 client.on('ready', () => {
     console.log(`Logged in as ${client.user.tag}!`);
+    client.user.setPresence({
+        game: config.game
+    })
 });
 
 function addReactions(msg, reactions) {
@@ -14,7 +17,7 @@ function addReactions(msg, reactions) {
         let emoji = reactions[i];
         if (emoji.charAt(0) === 'c') {
             try {
-            emoji = msg.client.emojis.resolveIdentifier(reactions[i].substring(1));
+                emoji = msg.client.emojis.resolveIdentifier(reactions[i].substring(1));
             } catch (e) {
                 emoji = "💔";
             }
@@ -37,7 +40,7 @@ client.on('message', msg => {
 
     for (const [key, reactions] of Object.entries(config.userNameMap)) {
         if (key === msg.author.username) {
-            
+
             addReactions(msg, reactions);
         }
     }
