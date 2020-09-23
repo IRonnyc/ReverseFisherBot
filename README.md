@@ -1,6 +1,6 @@
 # ReverseFisherBot
 
-add a config.json that contains your api token under the 'token' key and then regular expressions and the emojis you want them to map to:
+add a config.json that contains your api token under the 'token' key and then regular expressions and the emojis you want them to map to and finally reactions to specific usernames:
 ```
 {
     "token": "",
@@ -18,6 +18,7 @@ add a config.json that contains your api token under the 'token' key and then re
         "y(a|e)+s": ["✔"],
         "n(o)+(\\W|\\b)": ["❌"],
         "nose": ["👃"]
-    }
+    },
+    
 }
 ```
