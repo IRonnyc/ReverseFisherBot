@@ -28,8 +28,6 @@ function addReactions(msg, reactions) {
 
 client.on('message', msg => {
     msg.react('🐟');
-    console.log(msg.author.username);
-    console.log("------");
 
     for (const [key, reactions] of Object.entries(config.messageContainsMap)) {
         let keyRegex = new RegExp(key, 'i');
