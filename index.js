@@ -83,7 +83,7 @@ const handleEmotes = (msg) => {
             let answer = target === "" ? reactions[0] : reactions[1];
 
             // send emote text
-            msg.channel.send(answer.replace("@author", msg.author.username).replace("@target", target)).then(sent => {}).catch(console.error);
+            msg.channel.send(answer.replace(/\@author/g, msg.author.username).replace(/\@target/g, target)).then(sent => {}).catch(console.error);
 
             // if the bot has the permission to do so, delete the message triggering the emote
             if (msg.channel.guild.me.permissions.has('MANAGE_MESSAGES')) {
