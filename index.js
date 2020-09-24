@@ -58,18 +58,30 @@ client.on('message', msg => {
         if (msg.content.startsWith('/' + key)) {
             
             let target = "";
-            
+            // values of msg.mentions.users as array
+            let users = msg.mentions.users.array();
+
+            // add used specialEmoteTargets to the list of users
+            for (const [key, name] of Object.entries(config.specialEmoteTargets)) {
+                let keyRegex = new RegExp(key, 'i');
+                if (keyRegex.test(msg.content)) {
+                    users.push(name);
+                }
+            }
+
             // if @everyone was mentioned, use everyone as target
             if (msg.mentions.everyone) {
                 target = "everyone"
-            } else if (msg.mentions.users.size > 0) { // otherwise build the list of mentioned users
-                // values of msg.mentions.users as array
-                let users = msg.mentions.users.array();
+            } else if (users.length > 0) { // otherwise build the list of mentioned users
                 
-                // list all users except for the last and add an ", and " before the last
-                target = users.slice(0, users.length -1).join(", ");
-                // finish up the last part of target
-                target += (users.length > 1 ? ", and " : "") + users[users.length-1].username;
+                if (users.length > 1) {
+                    // list all users except for the last and add an ", and " before the last
+                    target = users.slice(0, users.length -1).join(", ");
+                    // finish up the last part of target
+                    target = [target, users[users.length-1]].join(", and ");
+                } else {
+                    target = users[0];
+                }
             }
             // select answer depending on if target is set (= was somebody mentioned?)
             let answer = target === "" ? reactions[0] : reactions[1];

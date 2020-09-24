@@ -35,6 +35,9 @@ add a config.json that contains your api token under the 'token' key and then re
     }.
     "emotes": {
         "cheer": ["@author cheers.", "@author cheers @target on"]
+    },
+    "specialEmoteTargets": {
+        "onion": "an onion"
     }
 }
 ```
@@ -60,3 +63,6 @@ regex expressions to look for in usernames and the emojis they're mapped to (whi
 
 ## emotes
 emotes that can be triggered with a forward slash (`/`) followed by the emote text. @author is replaced with the person sending the message, while @target is replaced with a list of everyone who was mentioned. The first string is used if nobody is mentioned and doesn't need to include @target.
+
+## specialEmoteTargets
+specialEmoteTargets is a list of words the bot looks for in emotes to add additional targets.
