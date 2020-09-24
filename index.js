@@ -10,7 +10,7 @@ const client = new Discord.Client();
 client.on('ready', () => {
     // log client user tag and set presence
     console.log(`Logged in as ${client.user.tag}!`);
-    console.log(game);
+    console.log(config.game);
     client.user.setPresence({
         game: config.game
     })
