@@ -4,7 +4,7 @@ add a config.json that contains your api token under the 'token' key and then re
 ```
 {
     "token": "",
-    "messageContainsMap": {
+    "wordMap": {
         "bir(d|b)": ["🐦"],
         "dragon": ["🐉"],
         "sn(a|e)k(e)*": ["🐍"],
@@ -19,6 +19,8 @@ add a config.json that contains your api token under the 'token' key and then re
         "n(o)+(\\W|\\b)": ["❌"],
         "nose": ["👃"]
     },
-    
+    "userNameMap": {
+        "IRonnyc": ["👼"]
+    }    
 }
 ```
