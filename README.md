@@ -32,7 +32,10 @@ add a config.json that contains your api token under the 'token' key and then re
     },
     "usernameMap": {
         "IRonnyc": ["👼"]
-    }    
+    }.
+    "emotes": {
+        "cheer": ["@author cheers.", "@author cheers @target on"]
+    }
 }
 ```
 
@@ -54,3 +57,6 @@ regex expressions to look for in messages and the emojis they're mapped to (whic
 
 ## usernameMap
 regex expressions to look for in usernames and the emojis they're mapped to (which are used to react to all messages of that user)
+
+## emotes
+emotes that can be triggered with a forward slash (`/`) followed by the emote text. @author is replaced with the person sending the message, while @target is replaced with a list of everyone who was mentioned. The first string is used if nobody is mentioned and doesn't need to include @target.

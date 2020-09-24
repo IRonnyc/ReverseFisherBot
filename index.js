@@ -53,6 +53,32 @@ client.on('message', msg => {
     // add the 🐟 emoji
     msg.react('🐟');
 
+    // first handle emotes
+    for (const [key, reactions] of Object.entries(config.emotes)) {
+        if (msg.content.startsWith('/' + key)) {
+            
+            let target = "";
+            
+            // if @everyone was mentioned, use everyone as target
+            if (msg.mentions.everyone) {
+                target = "everyone"
+            } else if (msg.mentions.users.size > 0) { // otherwise build the list of mentioned users
+                // values of msg.mentions.users as array
+                let users = msg.mentions.users.array();
+                
+                // list all users except for the last and add an ", and " before the last
+                target = users.slice(0, users.length -1).join(", ");
+                // finish up the last part of target
+                target += (users.length > 1 ? ", and " : "") + users[users.length-1].username;
+            }
+            // select answer depending on if target is set (= was somebody mentioned?)
+            let answer = target === "" ? reactions[0] : reactions[1];
+
+            // send emote text
+            msg.channel.send(answer.replace("@author", msg.author.username).replace("@target", target));
+        }
+    }
+
     // iterate over the wordMap
     for (const [key, reactions] of Object.entries(config.wordMap)) {
         // create a regex from the key
