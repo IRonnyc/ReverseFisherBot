@@ -6,14 +6,25 @@ const config = require('./config.json');
 const Discord = require('discord.js');
 const client = new Discord.Client();
 
+function setRandomActivity() {
+    // get all activities. extracted into a local variable to possibly later add some statistics to it
+    let statuses = config.activities;
+    // pick one
+    let choice = statuses[Math.floor(Math.random() * statuses.length)];
+    // set it!
+    console.log(`changing activity to ${choice.name}`)
+    client.user.setActivity(choice.name, {type: choice.type});
+}
+
 // when the client is ready
 client.on('ready', () => {
     // log client user tag and set presence
     console.log(`Logged in as ${client.user.tag}!`);
-    console.log(config.game);
-    client.user.setPresence({
-        game: config.game
-    })
+
+    setRandomActivity();
+
+    // sets a timer to change the activity regularly
+    setInterval(setRandomActivity, config.activityChangeInterval * 1000);
 });
 
 // adds all emojis in reactions to msg

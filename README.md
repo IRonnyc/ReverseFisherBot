@@ -4,6 +4,17 @@ add a config.json that contains your api token under the 'token' key and then re
 ```
 {
     "token": "",
+    "activities": [
+        {
+            "name": "Fishing for messages",
+            "type": "PLAYING"
+        },
+        {
+            "name": "the fishingrod for messages",
+            "type": "WATCHING"
+        }
+    ],
+    "activityChangeInterval": 600,
     "wordMap": {
         "bir(d|b)": ["🐦"],
         "dragon": ["🐉"],
@@ -19,8 +30,27 @@ add a config.json that contains your api token under the 'token' key and then re
         "n(o)+(\\W|\\b)": ["❌"],
         "nose": ["👃"]
     },
-    "userNameMap": {
+    "usernameMap": {
         "IRonnyc": ["👼"]
     }    
 }
 ```
+
+## token
+your discord API token
+
+## activities
+array of activities, each containing a name and a type object. supported types (by discord.js):
+ - PLAYING
+ - STREAMING
+ - LISTENING
+ - WATCHING
+
+## activityChangeInterval
+the time in seconds between activity changes
+
+## wordMap
+regex expressions to look for in messages and the emojis they're mapped to (which are used to react to these messages)
+
+## usernameMap
+regex expressions to look for in usernames and the emojis they're mapped to (which are used to react to all messages of that user)
