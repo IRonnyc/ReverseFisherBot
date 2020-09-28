@@ -15,7 +15,6 @@ var allSnowflakesInSpecialEmoteTargetsResolved = false;
 
 const tryLoadingContactOnError = () => {
     if (config.contactOnError) {
-        console.log(Object.entries(client.users.cache));
         /*client.users.fetch(config.contactOnError).then((res) => {
             console.log(contactOnError);
             contactOnError = res;
@@ -185,9 +184,7 @@ const handleUserMap = (msg) => {
 
 // when a message is received
 client.on('message', msg => {
-    console.log("all embeds:",msg.embeds);
     for (let i = 0; i < msg.embeds.length; i++) {
-        console.log("embed:", msg.embeds[i]);
         if (config.messageTitleIgnore.includes(msg.embeds[i].title)) {
             return;
         }
