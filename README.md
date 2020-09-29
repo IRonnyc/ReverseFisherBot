@@ -42,6 +42,16 @@ add a config.json that contains your api token under the 'token' key and then re
     "specialEmoteTargets": {
         "onion": "an onion"
     },
+    "reactOnOccasion": {
+        "snowflake": [
+            {
+                "probability": 1,
+                "msg": [
+                    "<@758299827741261835> flexes its muscles at <@snowflake>."
+                ]
+            }
+        ]
+    },
     "contactOnError": "your snowflake"
 }
 ```
@@ -73,6 +83,10 @@ emotes that can be triggered with a forward slash (`/`) followed by the emote te
 
 ## specialEmoteTargets
 specialEmoteTargets is a list of words the bot looks for in emotes to add additional targets. If the entered string starts with a u and then a number, it will try to resolve the number as a user snowflake to tag the user. These are RegEx too!
+
+## reactOnOccasion
+The bot will on occasion react to something a user writes with a predefined message. The user can be set under snowflake, enter the snowflake of the user here.
+This is followed by an array of possible reactions. Enter objects with the fields `probability` (0 - 1) for the probability of this answer being sent, and `msg` for the messages being sent.
 
 ## contactOnError
 contactOnError can hold your personal discord snowflake (type \@yourself into discord chat to escape the link, the snowflake is the number it shows) so the bot can contact you if an error occures (e.g. somebody tried to use an emote that doesn't exist).

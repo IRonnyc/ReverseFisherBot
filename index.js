@@ -39,7 +39,6 @@ const tryResolvingSnowflakesInSpecialEmoteTargets = () => {
         }
     }
     allSnowflakesInSpecialEmoteTargetsResolved = success;
-    console.log(config.specialEmoteTargets);
 }
 
 function setRandomActivity() {
@@ -182,6 +181,27 @@ const handleUserMap = (msg) => {
     return true;
 }
 
+// occasionally randomly reacts to a message sent by a user (configures in config.json)
+const handleRandomRections = (msg) => {
+    // get reactions for user
+    let reactions = config.reactOnOccasion[msg.author.id];
+    // if no possible reactions have been defined, stop
+    if (!reactions) {
+        return;
+    }
+    // go through reactions
+    for(let i = 0; i < reactions.length; i++) {
+        // roll the dice!
+        let chance = Math.random();
+        // if random number < probability, send all defined messages
+        if (chance < reactions[i].probability) {
+            for (let j = 0; j < reactions[i].msg.length; j++) {
+                msg.channel.send(reactions[i].msg[j]);
+            }
+        }
+    }
+}
+
 // when a message is received
 client.on('message', msg => {
     for (let i = 0; i < msg.embeds.length; i++) {
@@ -204,12 +224,17 @@ client.on('message', msg => {
     }
 
     // handle wordMap and check if the message processing should continue
-    if(!handleWordMap(msg)) {
+    if(!handleWordMap(msg) || msg.deleted) {
         return;
     }
 
     // handle userMap and check if the message processing should continue
-    if (!handleUserMap(msg)) {
+    if (!handleUserMap(msg) || msg.deleted) {
+        return;
+    }
+
+    // on occasion randomly react to something somebody says, according to the settings in config.json
+    if (!handleRandomRections(msg) || msg.deleted) {
         return;
     }
 });
