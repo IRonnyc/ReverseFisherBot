@@ -15,6 +15,7 @@ add a config.json that contains your api token under the 'token' key and then re
         }
     ],
     "activityChangeInterval": 600,
+    "helpPageLength": 1000,
     "wordMap": {
         "bir(d|b)": ["🐦"],
         "dragon": ["🐉"],
@@ -71,6 +72,9 @@ the time in seconds between activity changes.
 
 ## wordMap
 regex expressions to look for in messages and the emojis they're mapped to (which are used to react to these messages).
+
+## helpPageLength
+The upper limit of characters for every page returned by the /help command
 
 ## usernameMap
 regex expressions to look for in usernames and the emojis they're mapped to (which are used to react to all messages of that user).

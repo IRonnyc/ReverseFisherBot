@@ -12,6 +12,7 @@ client.login(config.token);
 var contactOnError = undefined;
 
 var allSnowflakesInSpecialEmoteTargetsResolved = false;
+var helpTextPages = [];
 
 const tryLoadingContactOnError = () => {
     if (config.contactOnError) {
@@ -39,6 +40,23 @@ const tryResolvingSnowflakesInSpecialEmoteTargets = () => {
         }
     }
     allSnowflakesInSpecialEmoteTargetsResolved = success;
+}
+
+const buildUpHelpText = () => {
+    let emotes = Object.entries(config.emotes).sort();
+    helpText = "";
+    let page = 0;
+    for (const [key, values] of emotes) {
+        let newText = `/${key} => \n\t${values[0]}\n\t${values[1]}\n\n`;
+        if (helpText.length + newText.length > config.helpPageLength) {
+            helpTextPages[page] = helpText;
+            page++;
+            helpText = newText;
+        } else {
+            helpText += newText;
+        }
+    }
+    helpTextPages[page] = helpText;
 }
 
 function setRandomActivity() {
@@ -69,6 +87,47 @@ const sendErrorWarning = (err) => {
     if (contactOnError) {
         contactOnError.send(err);
     }
+}
+
+const printHelp = (msg) => {
+    if (helpTextPages.length == 0) {
+        buildUpHelpText();
+    }
+    const embed = new Discord.MessageEmbed()
+        .setColor(0x99CC99)
+        .setFooter(`Page 1 of ${helpTextPages.length}`)
+        .setDescription(helpTextPages[0]);
+
+    msg.channel.send(embed).then(emsg => {
+        emsg.page = 0;
+        emsg.react('⏪').then(r => {
+            emsg.react('⏩');
+
+            const backwardsFilter = (reaction, user) => reaction.emoji.name === '⏪' && user.id === msg.author.id;
+            const forwardsFilter = (reaction, user) => reaction.emoji.name === '⏩' && user.id === msg.author.id;
+
+            const backwards = emsg.createReactionCollector(backwardsFilter, { time: 60000 });
+            const forwards = emsg.createReactionCollector(forwardsFilter, { time: 60000 });
+
+            const updateMessageFactory = (direction, cancelCondition) => {
+                return (r) => {
+                    if (cancelCondition()) {
+                        return;
+                    }
+                    emsg.page += direction;
+                    embed.setDescription(helpTextPages[emsg.page]);
+                    embed.setFooter(`Page ${emsg.page + 1} of ${helpTextPages.length}`);
+                    emsg.edit(embed);
+                    r.users.remove(msg.author.id);
+                }
+            };
+
+            backwards.on('collect', updateMessageFactory(-1, () => emsg.page === 0));
+            forwards.on('collect', updateMessageFactory(1, () => emsg.page === helpTextPages.length -1));
+        })
+    });
+    msg.delete({ timeout: 1000 });
+    return false;
 }
 
 // handles emotes and returns if the message should be looked at further (= has not been deleted).
@@ -109,13 +168,13 @@ const handleEmotes = (msg) => {
             let answer = target === "" ? reactions[0] : reactions[1];
 
             // send emote text
-            msg.channel.send(answer.replace(/\@author/g, msg.author).replace(/\@target/g, target)).then(sent => {}).catch(console.error);
+            msg.channel.send(answer.replace(/\@author/g, msg.author).replace(/\@target/g, target)).then(sent => { }).catch(console.error);
 
-            
+
             // if the bot has the permission to do so, delete the message triggering the emote
             if (msg.deletable) {
                 // message deleted, so no further processing of the message is possible
-                msg.delete({timeout: 1000});
+                msg.delete({ timeout: 1000 });
                 return false;
             } else {
                 msg.react("💔");
@@ -190,7 +249,7 @@ const handleRandomRections = (msg) => {
         return;
     }
     // go through reactions
-    for(let i = 0; i < reactions.length; i++) {
+    for (let i = 0; i < reactions.length; i++) {
         // roll the dice!
         let chance = Math.random();
         // if random number < probability, send all defined messages
@@ -216,6 +275,12 @@ client.on('message', msg => {
     // add the 🐟 emoji
     msg.react('🐟');
 
+    if (msg.content.startsWith('/help')) {
+        if (!printHelp(msg)) {
+            return;
+        }
+    }
+
     // first handle emotes and check if the message processing should continue
     if (msg.content.startsWith('/')) {
         if (!handleEmotes(msg)) {
@@ -224,7 +289,7 @@ client.on('message', msg => {
     }
 
     // handle wordMap and check if the message processing should continue
-    if(!handleWordMap(msg) || msg.deleted) {
+    if (!handleWordMap(msg) || msg.deleted) {
         return;
     }
 
