@@ -1,28 +1,42 @@
 #!/usr/local/bin/node
 
-// load the config file, and discord.js
-const config = require('./config.json');
+// load the config loader module and set it up
+const configure = require('./configure.js');
+let config = configure.readConfigSync();
 
 const Discord = require('discord.js');
 const client = new Discord.Client();
 
-// login using the token defined in config.json
-client.login(config.token);
-
-var contactOnError = undefined;
+var adminContact = undefined;
 
 var allSnowflakesInSpecialEmoteTargetsResolved = false;
 var helpTextPages = [];
 
-const tryLoadingContactOnError = () => {
-    if (config.contactOnError) {
-        /*client.users.fetch(config.contactOnError).then((res) => {
-            console.log(contactOnError);
-            contactOnError = res;
+// login using the token defined in config.json
+client.login(config.token);
+
+const updateConfig = () => {
+    console.log("updating config!");
+    configure.readConfig((value) => {
+    config = value;
+    tryLoadingAdminContact();
+    tryResolvingSnowflakesInSpecialEmoteTargets();
+    buildUpHelpText();
+    console.log("finished updating config!");
+    });
+}
+// watch the config and reload it on change. Then reresolve snowflakes and rebuild the help pages.
+configure.watchConfig(updateConfig);
+
+const tryLoadingAdminContact = () => {
+    if (config.adminContact) {
+        /*client.users.fetch(config.adminContact).then((res) => {
+            console.log(adminContact);
+            adminContact = res;
         }).catch((err) => {
             console.error(err);
         });*/
-        contactOnError = client.users.cache.get(config.contactOnError);
+        adminContact = client.users.cache.get(config.adminContact);
     }
 }
 
@@ -61,36 +75,27 @@ const buildUpHelpText = () => {
 
 function setRandomActivity() {
     // get all activities. extracted into a local variable to possibly later add some statistics to it
-    let statuses = config.activities;
-    // pick one
-    let choice = statuses[Math.floor(Math.random() * statuses.length)];
-    // set it!
-    console.log(`changing activity to ${choice.name}`)
-    client.user.setActivity(choice.name, { type: choice.type });
+    configure.usingConfig(() => {
+        let statuses = config.activities;
+        // pick one
+        let choice = statuses[Math.floor(Math.random() * statuses.length)];
+        // set it!
+        console.log(`changing activity to ${choice.name}`)
+        client.user.setActivity(choice.name, { type: choice.type });
+    });
 }
 
-// when the client is ready
-client.on('ready', () => {
-    // log client user tag and set presence
-    console.log(`Logged in as ${client.user.tag}!`);
-
-    setRandomActivity();
-
-    // sets a timer to change the activity regularly
-    setInterval(setRandomActivity, config.activityChangeInterval * 1000);
-});
-
 const sendErrorWarning = (err) => {
-    if (!contactOnError) {
-        tryLoadingContactOnError();
+    if (!adminContact) {
+        configure.usingConfig(tryLoadingAdminContact);
     }
-    if (contactOnError) {
-        contactOnError.send(err);
+    if (adminContact) {
+        adminContact.send(err);
     }
 }
 
 const printHelp = (msg) => {
-    if (helpTextPages.length == 0) {
+    if (helpTextPages.length === 0) {
         buildUpHelpText();
     }
     const embed = new Discord.MessageEmbed()
@@ -123,7 +128,7 @@ const printHelp = (msg) => {
             };
 
             backwards.on('collect', updateMessageFactory(-1, () => emsg.page === 0));
-            forwards.on('collect', updateMessageFactory(1, () => emsg.page === helpTextPages.length -1));
+            forwards.on('collect', updateMessageFactory(1, () => emsg.page === helpTextPages.length - 1));
         })
     });
     msg.delete({ timeout: 1000 });
@@ -133,7 +138,7 @@ const printHelp = (msg) => {
 // handles emotes and returns if the message should be looked at further (= has not been deleted).
 const handleEmotes = (msg) => {
     for (const [key, reactions] of Object.entries(config.emotes)) {
-        if (msg.content.startsWith('/' + key)) {
+        if (msg.content.startsWith(config.commandPrefix + key)) {
 
             let target = "";
             // values of msg.mentions.users as array
@@ -168,7 +173,7 @@ const handleEmotes = (msg) => {
             let answer = target === "" ? reactions[0] : reactions[1];
 
             // send emote text
-            msg.channel.send(answer.replace(/\@author/g, msg.author).replace(/\@target/g, target)).then(sent => { }).catch(console.error);
+            msg.channel.send(answer.replace(/@author/g, msg.author).replace(/@target/g, target)).then(sent => { }).catch(console.error);
 
 
             // if the bot has the permission to do so, delete the message triggering the emote
@@ -211,6 +216,8 @@ function addReactions(msg, reactions) {
 // handles the wordMap and returns if the message should be looked at further
 const handleWordMap = (msg) => {
     // iterate over the wordMap
+    console.log(config);
+    console.log(configure.getStatus());
     for (const [key, reactions] of Object.entries(config.wordMap)) {
         // create a regex from the key
         let keyRegex = new RegExp(key, 'i');
@@ -261,45 +268,59 @@ const handleRandomRections = (msg) => {
     }
 }
 
+// when the client is ready
+client.on('ready', () => {
+    // log client user tag and set presence
+    console.log(`Logged in as ${client.user.tag}!`);
+
+    setRandomActivity();
+
+    // sets a timer to change the activity regularly
+    setInterval(setRandomActivity, config.activityChangeInterval * 1000);
+});
+
 // when a message is received
 client.on('message', msg => {
-    for (let i = 0; i < msg.embeds.length; i++) {
-        if (config.messageTitleIgnore.includes(msg.embeds[i].title)) {
+    configure.usingConfig(() => {
+        for (let i = 0; i < msg.embeds.length; i++) {
+            if (config.messageTitleIgnore.includes(msg.embeds[i].title)) {
+                return;
+            }
+        }
+        console.log(configure.getStatus());
+        /*if (config.messageTitleIgnore.includes(msg.embeds.MessageEmebd.title)) {
+            return;
+        }*/
+
+        // add the 🐟 emoji
+        msg.react('🐟');
+
+        if (msg.content.startsWith('/help')) {
+            if (!printHelp(msg)) {
+                return;
+            }
+        }
+
+        // first handle emotes and check if the message processing should continue
+        if (msg.content.startsWith(config.commandPrefix)) {
+            if (!handleEmotes(msg)) {
+                return;
+            }
+        }
+
+        // handle wordMap and check if the message processing should continue
+        if (!handleWordMap(msg) || msg.deleted) {
             return;
         }
-    }
-    /*if (config.messageTitleIgnore.includes(msg.embeds.MessageEmebd.title)) {
-        return;
-    }*/
 
-    // add the 🐟 emoji
-    msg.react('🐟');
-
-    if (msg.content.startsWith('/help')) {
-        if (!printHelp(msg)) {
+        // handle userMap and check if the message processing should continue
+        if (!handleUserMap(msg) || msg.deleted) {
             return;
         }
-    }
 
-    // first handle emotes and check if the message processing should continue
-    if (msg.content.startsWith('/')) {
-        if (!handleEmotes(msg)) {
+        // on occasion randomly react to something somebody says, according to the settings in config.json
+        if (!handleRandomRections(msg) || msg.deleted) {
             return;
         }
-    }
-
-    // handle wordMap and check if the message processing should continue
-    if (!handleWordMap(msg) || msg.deleted) {
-        return;
-    }
-
-    // handle userMap and check if the message processing should continue
-    if (!handleUserMap(msg) || msg.deleted) {
-        return;
-    }
-
-    // on occasion randomly react to something somebody says, according to the settings in config.json
-    if (!handleRandomRections(msg) || msg.deleted) {
-        return;
-    }
+    });
 });

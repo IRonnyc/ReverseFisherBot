@@ -14,6 +14,8 @@ add a config.json that contains your api token under the 'token' key and then re
             "type": "WATCHING"
         }
     ],
+    "commandPrefix": "/",
+    "adminCommandPrefix": "!/",
     "activityChangeInterval": 600,
     "helpPageLength": 1000,
     "wordMap": {
@@ -53,7 +55,7 @@ add a config.json that contains your api token under the 'token' key and then re
             }
         ]
     },
-    "contactOnError": "your snowflake"
+    "adminContact": "your snowflake"
 }
 ```
 
@@ -66,6 +68,12 @@ array of activities, each containing a name and a type object. supported types (
  - STREAMING
  - LISTENING
  - WATCHING
+
+## commandPrefix
+This sets the character(s) that starts a command the bot should interpret.
+
+## adminCommandPrefix
+This sets the character(s) that start an admin command, that needs to be confirmed by the adminContact. Make sure it doesn't start with your normal command prefix, so it doesn't trigger unimplemented emote warnings.
 
 ## activityChangeInterval
 the time in seconds between activity changes.
@@ -92,5 +100,5 @@ specialEmoteTargets is a list of words the bot looks for in emotes to add additi
 The bot will on occasion react to something a user writes with a predefined message. The user can be set under snowflake, enter the snowflake of the user here.
 This is followed by an array of possible reactions. Enter objects with the fields `probability` (0 - 1) for the probability of this answer being sent, and `msg` for the messages being sent.
 
-## contactOnError
-contactOnError can hold your personal discord snowflake (type \@yourself into discord chat to escape the link, the snowflake is the number it shows) so the bot can contact you if an error occures (e.g. somebody tried to use an emote that doesn't exist).
+## adminContact
+adminContact can hold your personal discord snowflake (type \@yourself into discord chat to escape the link, the snowflake is the number it shows) so the bot can contact you if an error occures (e.g. somebody tried to use an emote that doesn't exist).
