@@ -26,8 +26,8 @@ const writeConfigSync = (data) => {
 }
 
 // writes the data asynch
-const writeConfig = (data, path = "./config.json") => {
-    fs.writeFile(path, JSON.stringify(data, null, 4), (err) => {
+const writeConfig = (data, applyBefore = (dataIn) => dataIn, path = "./config.json") => {
+    fs.writeFile(path, JSON.stringify(applyBefore(data), null, 4), (err) => {
         if (err) throw err;
     })
 }

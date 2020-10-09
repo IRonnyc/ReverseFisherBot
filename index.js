@@ -157,9 +157,17 @@ const adminCommands = {
     },
     "saveConfig": (parameter) => {
         if (parameter.length > 0) {
-            Configure.writeConfig(config, parameter[0]);
+            Configure.writeConfig(config, (dataIn) => {dataIn}, parameter[0]);
         }
-        Configure.writeConfig(config);
+        Configure.writeConfig(config, (dataIn) => {
+            for (const [key, value] of Object.entries(dataIn.specialEmoteTargets)) {
+                if (typeof(value) === 'object') {
+                    dataIn.specialEmoteTargets[key] = `u${value.id}`;
+                }
+            }
+            dataIn.specialEmoteTargets = users;
+            return dataIn;
+        });
     },
     "test": (parameter) => {
         console.log(`TEST COMMAND! Params: ${parameter}`);
@@ -167,8 +175,6 @@ const adminCommands = {
 }
 
 const executeAdminCommand = (index, parameter) => {
-    console.log(adminCommands);
-    console.log(adminCommands["addEmote"]);
     if (adminCommands[index]) {
         adminCommands[index](parameter);
     } else {
@@ -240,7 +246,7 @@ const handleEmotes = (msg) => {
             }
             // select answer depending on if target is set (= was somebody mentioned?)
             let answer = target === "" ? reactions[0] : reactions[1];
-
+            console.log(`target: ${target}`)
             // send emote text
             msg.channel.send(answer.replace(/@author/g, msg.author).replace(/@target/g, target)).then(sent => { }).catch(console.error);
 
