@@ -197,7 +197,10 @@ const handleAdminCommands = (msg) => {
             executeAdminCommand(command, parameter);
         } else {
             Authorize.requestAuthorization(msg.author, command, parameter)
-                .then(() => executeAdminCommand(command, parameter))
+                .then(() => { 
+                    executeAdminCommand(command, parameter); 
+                    msg.reply("Your request has been approved!"); 
+                })
                 .catch(() => msg.reply("Your request has been denied!"));
                 
             msg.reply("You are not authorized to execute this command. The administrator has been asked to confirm your request.");
