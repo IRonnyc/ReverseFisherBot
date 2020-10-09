@@ -165,7 +165,6 @@ const adminCommands = {
                     dataIn.specialEmoteTargets[key] = `u${value.id}`;
                 }
             }
-            dataIn.specialEmoteTargets = users;
             return dataIn;
         });
     },
