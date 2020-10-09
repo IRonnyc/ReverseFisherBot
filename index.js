@@ -6,8 +6,8 @@ let config = Configure.readConfigSync();
 
 // authorize users from config.
 const Authorize = require('./authorise');
-/*Authorize.authorizeUser(config.adminContact);
-Authorize.authorizeUsers(config.authorizedUsers);*/
+Authorize.authorizeUser(config.adminContact);
+Authorize.authorizeUsers(config.authorizedUsers);
 
 const AuthorizeDiscord = require('./authorize_discord');
 
@@ -28,8 +28,8 @@ const updateConfig = () => {
     Authorize.deauthorizeAll();
     Configure.readConfig((value) => {
     config = value;
-    /*Authorize.authorizeUser(config.adminContact);
-    Authorize.authorizeUsers(config.authorizedUsers);*/
+    Authorize.authorizeUser(config.adminContact);
+    Authorize.authorizeUsers(config.authorizedUsers);
     tryLoadingAdminContact();
     tryResolvingSnowflakesInSpecialEmoteTargets();
     buildUpHelpText();
