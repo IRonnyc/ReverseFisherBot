@@ -151,11 +151,24 @@ const printHelp = (msg) => {
 
 
 const adminCommands = {
-    "addEmote": (parameter) => {
+    "addemote": (parameter) => {
         config.emotes[parameter[0]] = [parameter[1], parameter[2]];
         console.log(parameter[0] + " added");
     },
-    "saveConfig": (parameter) => {
+    "authorize": (parameter) => {
+        Authorize.authorizeUser(parameter[0].id);
+        if (parameter[1]) {
+            client.users.cache.get(parameter[0].id).send(`You've been authorized for ${parameter[1]/1000} seconds.`);
+            setTimeout(parseInt(parameter[1]), () => Authorize.deauthorizeUser(parameter[1]));
+        } else {
+            client.users.cache.get(parameter[0].id).send(`You've been authorized permanently.`);
+        }
+    },
+    "deauthorize": (parameter) => {
+        Authorize.deauthorizeUser(parameter[0].id);
+        client.users.cache.get(parameter[0].id).send(`Your privileges have been revoked.`);
+    },
+    "saveconfig": (parameter) => {
         if (parameter.length > 0) {
             Configure.writeConfig(config, (dataIn) => {dataIn}, parameter[0]);
         }
@@ -174,6 +187,7 @@ const adminCommands = {
 }
 
 const executeAdminCommand = (index, parameter) => {
+    index = index.toLowerCase();
     if (adminCommands[index]) {
         adminCommands[index](parameter);
     } else {
