@@ -108,6 +108,15 @@ const sendErrorWarning = (err) => {
     }
 }
 
+const sendWarning = (err) => {
+    if (!adminContact) {
+        Configure.usingConfig(tryLoadingAdminContact);
+    }
+    if (adminContact) {
+        adminContact.send("Warning:\n" + err);
+    }
+}
+
 const printHelp = (msg) => {
     if (helpTextPages.length === 0) {
         buildUpHelpText();
@@ -158,13 +167,14 @@ const adminCommands = {
     "authorize": (parameter) => {
         Authorize.authorizeUser(parameter[0]);
         if (parameter[1]) {
+            sendWarning(`User ${parameter[0]} has been authorized for ${parameter[1]} seconds.`);
             client.users.cache.get(parameter[0]).send(`You've been authorized for ${parameter[1]} seconds.`);
-            console.log("timeout will be: " + parseInt(parameter[1]) * 1000);
             setTimeout(() => {
                 console.log("hopefully deauthorizing now!");
                 adminCommands["deauthorize"](parameter);
             }, parseInt(parameter[1]) * 1000);
         } else {
+            sendWarning(`User ${parameter[0]} has been authorized permanently.`);
             client.users.cache.get(parameter[0]).send(`You've been authorized permanently.`);
         }
     },
