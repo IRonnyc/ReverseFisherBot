@@ -156,17 +156,22 @@ const adminCommands = {
         console.log(parameter[0] + " added");
     },
     "authorize": (parameter) => {
-        Authorize.authorizeUser(parameter[0].id);
+        Authorize.authorizeUser(parameter[0]);
         if (parameter[1]) {
-            client.users.cache.get(parameter[0].id).send(`You've been authorized for ${parameter[1]/1000} seconds.`);
-            setTimeout(parseInt(parameter[1]), () => Authorize.deauthorizeUser(parameter[1]));
+            client.users.cache.get(parameter[0]).send(`You've been authorized for ${parameter[1]} seconds.`);
+            console.log("timeout will be: " + parseInt(parameter[1]) * 1000);
+            setTimeout(() => {
+                console.log("hopefully deauthorizing now!");
+                adminCommands["deauthorize"](parameter);
+            }, parseInt(parameter[1]) * 1000);
         } else {
-            client.users.cache.get(parameter[0].id).send(`You've been authorized permanently.`);
+            client.users.cache.get(parameter[0]).send(`You've been authorized permanently.`);
         }
     },
     "deauthorize": (parameter) => {
-        Authorize.deauthorizeUser(parameter[0].id);
-        client.users.cache.get(parameter[0].id).send(`Your privileges have been revoked.`);
+        console.log(parameter[0]);
+        Authorize.deauthorizeUser(parameter[0]);
+        client.users.cache.get(parameter[0]).send(`Your privileges have been revoked.`);
     },
     "saveconfig": (parameter) => {
         if (parameter.length > 0) {
@@ -214,7 +219,10 @@ const handleAdminCommands = (msg) => {
                     executeAdminCommand(command, parameter); 
                     msg.author.send("Your request has been approved!"); 
                 })
-                .catch(() => msg.author.send("Your request has been denied!"));
+                .catch((e) => {
+                    msg.author.send("Your request has been denied!");
+                    console.log(e);
+                });
                 
             msg.author.send("You are not authorized to execute this command. The administrator has been asked to confirm your request.");
             // ask admin contact
