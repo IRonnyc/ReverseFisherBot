@@ -22,12 +22,12 @@ const readConfig = (then) => {
 
 // writes the data synch
 const writeConfigSync = (data) => {
-    return fs.writeFileSync('./config.json', data);
+    return fs.writeFileSync('./config.json', JSON.stringify(data, null, 4));
 }
 
 // writes the data asynch
-const writeConfig = (data) => {
-    fs.writeFile('./config.json', data, (err) => {
+const writeConfig = (data, path = "./config.json") => {
+    fs.writeFile(path, JSON.stringify(data, null, 4), (err) => {
         if (err) throw err;
     })
 }
@@ -77,6 +77,7 @@ const getStatus = () => {
 module.exports = {
     readConfig,
     readConfigSync,
+    writeConfig,
     writeConfigSync,
     watchConfig,
 

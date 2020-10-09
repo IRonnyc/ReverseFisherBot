@@ -102,3 +102,27 @@ This is followed by an array of possible reactions. Enter objects with the field
 
 ## adminContact
 adminContact can hold your personal discord snowflake (type \@yourself into discord chat to escape the link, the snowflake is the number it shows) so the bot can contact you if an error occures (e.g. somebody tried to use an emote that doesn't exist).
+
+## authorizedUsers
+users that you trust and who are allowed to execute admin commands.
+
+
+# adminCommands
+
+## addEmote
+
+`!admin addEmote "test" "@author tests themself." "@author tests @target"`
+
+Parameters: 3
+First: name of the emote
+Second: emote without target
+Third: emote with target
+
+Adds a new emote to the bot. This change has to be saved with saveConfig
+
+## saveConfig
+
+`!admin saveConfig`
+Parameter: 0
+
+saves changes to the config file.
