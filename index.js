@@ -332,7 +332,7 @@ const handleAdminCommands = (msg) => {
 // handles emotes and returns if the message should be looked at further (= has not been deleted).
 const handleEmotes = (msg) => {
     // for every emote
-    for (const [key, reactions] of Object.entries(config.emotes)) {
+    for (let [key, reactions] of Object.entries(config.emotes)) {
         // if it starts with the commandPrefix, it's an emote
         if (msg.content.startsWith(config.commandPrefix + key)) {
 
@@ -365,9 +365,26 @@ const handleEmotes = (msg) => {
                     target = users[0];
                 }
             }
+
+            // resolve if-else if necessary
+            if (reactions.if) {
+                let success = false;
+                for (const [ifauthor, iftext] of Object.entries(reactions.if.author)) {
+                    // if author is listed under if.author
+                    if (ifauthor === msg.author.id) {
+                        reactions[1] = iftext;
+                        success = true;
+                        break;
+                    }
+                }
+                // go to default
+                if (!success) {
+                    reactions = reactions.else;
+                }
+            }
             // select answer depending on if target is set (= was somebody mentioned?)
             let answer = target === "" ? reactions[0] : reactions[1];
-            
+
             // send emote text
             msg.channel.send(answer.replace(/@author/g, msg.author).replace(/@target/g, target)).then(sent => { }).catch(console.error);
 
