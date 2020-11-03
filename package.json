@@ -4,7 +4,8 @@
   "description": "a discord bot that reacts with the :fish: emoji to put the fish into the chat",
   "main": "index.js",
   "dependencies": {
-    "discord.js": "^12.3.1"
+    "discord.js": "^12.3.1",
+    "nodemon": "^2.0.6"
   },
   "devDependencies": {},
   "scripts": {

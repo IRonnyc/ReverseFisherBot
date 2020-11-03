@@ -16,6 +16,9 @@ const AuthorizeDiscord = require('./authorise_discord');
 const Discord = require('discord.js');
 const client = new Discord.Client();
 
+// include sinnyFormatter
+const sinnyFormatter = require('./sinnyFormatter');
+
 // undefined variables, set on demand as they use the client's cache
 var adminContact = undefined;
 // will contain resolved specialEmoteTargets from config
@@ -218,12 +221,34 @@ const printHelp = (msg) => {
 // array of admin command functions
 const adminCommands = {
     // adds an emote to the list of emotes in config
-    "addemote": (parameter) => {
+    "addemote": (parameter, reply) => {
+        if (parameter.length < 3) {
+            reply("addemote requires 2 arguments, the name of the emote, the text without a target and the text with a target! (use @author and @target for the author and target respectively)");
+            return;
+        }
         config.emotes[parameter[0]] = [parameter[1], parameter[2]];
         console.log(parameter[0] + " added");
     },
+    // adds an entry to the wordMap
+    "addwordreaction": (parameter, reply) => {
+        if (parameter.length < 2) {
+            reply("addwordreaction requires 2 arguments, a word to react to and an emoji to react with!");
+            return;
+        }
+        config.wordMap[parameter[0]] = parameter[1];
+        console.log(parameter[0] + " added");
+    },
+    // adds an entry to the usernameMap
+    "addusernamereaction": (parameter, reply) => {
+        if (parameter.length < 2) {
+            reply("addusernamereaction requires 2 arguments, a name to react to and an emoji to react with!");
+            return;
+        }
+        config.usernameMap[parameter[0]] = parameter[1];
+        console.log(parameter[0] + " added");
+    },
     // authorizes a user to execute admin commands without confirmation
-    "authorize": (parameter) => {
+    "authorize": (parameter, reply) => {
         // first parameter is the user
         Authorize.authorizeUser(parameter[0]);
         // the second parameter can be a time limit in seconds after which the user
@@ -246,14 +271,14 @@ const adminCommands = {
         }
     },
     // revokes user privileges for the passed user
-    "deauthorize": (parameter) => {
+    "deauthorize": (parameter, reply) => {
         // deauthorize
         Authorize.deauthorizeUser(parameter[0]);
         // inform the user
         client.users.cache.get(parameter[0]).send(`Your privileges have been revoked.`);
     },
     // writes the current configuration to the config.json
-    "saveconfig": (parameter) => {
+    "saveconfig": (parameter, reply) => {
 
         if (parameter.length > 0) { // first parameter can be a path to write to
             // write as is to a specific file
@@ -262,20 +287,27 @@ const adminCommands = {
             Configure.writeConfig(config);
         }
     },
+    "static": (parameter, reply) => {
+        sinnyFormatter.getFormattedString(config.raidStaticSource, "static", parameter, (formattedString) => reply(formattedString));
+    }, 
+    "raider": (parameter, reply) => {
+        sinnyFormatter.getFormattedString(config.raidStaticSource, "raider", parameter, (formattedString) => reply(formattedString));
+    },
     // test command, just prints to console
-    "test": (parameter) => {
+    "test": (parameter, reply) => {
         console.log(`TEST COMMAND! Params: ${parameter}`);
+        reply("OK").then(sent => { }).catch(console.error);;
     }
 }
 
 // calls the adminCommand associated with the value of index with the passed parameters
-const executeAdminCommand = (index, parameter) => {
+const executeAdminCommand = (index, parameter, reply) => {
     // case insensitive
     index = index.toLowerCase();
     // if value exists
     if (adminCommands[index]) {
         // call function
-        adminCommands[index](parameter);
+        adminCommands[index](parameter, reply);
     } else { // else send error that the admin command could not be found
         sendErrorWarning(`Admin command ${index} could not be found!`);
     }
@@ -299,14 +331,14 @@ const handleAdminCommands = (msg) => {
 
         // if the user is authorized, execute the command
         if (Authorize.hasPermission(msg.author.id)) {
-            executeAdminCommand(command, parameter);
+            executeAdminCommand(command, parameter, (txt) => msg.channel.send(txt));
         } else { 
             // otherwise use the set requestAuthorization method to 
             // ask the admin to authorize the command
             Authorize.requestAuthorization(msg.author, command, parameter)
                 // admin approves
                 .then(() => {
-                    executeAdminCommand(command, parameter);
+                    executeAdminCommand(command, parameter,  (txt) => msg.channel.send(txt));
                     msg.author.send("Your request has been approved!");
                 })
                 // admin denies it or doesn't respond in time
@@ -387,7 +419,6 @@ const handleEmotes = (msg) => {
 
             // send emote text
             msg.channel.send(answer.replace(/@author/g, msg.author).replace(/@target/g, target)).then(sent => { }).catch(console.error);
-
 
             // if the bot has the permission to do so, delete the message triggering the emote
             if (msg.deletable) {
@@ -511,7 +542,7 @@ client.on('message', msg => {
         msg.react('🐟');
 
         // handle /help
-        if (msg.content.startsWith('/help')) {
+        if (msg.content.startsWith(config.commandPrefix + 'help')) {
             if (!printHelp(msg)) {
                 return;
             }
