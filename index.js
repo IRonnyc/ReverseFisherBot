@@ -235,7 +235,10 @@ const adminCommands = {
             reply("addwordreaction requires 2 arguments, a word to react to and an emoji to react with!");
             return;
         }
-        config.wordMap[parameter[0]] = parameter[1];
+        if (!config.wordMap[parameter[0]]) {
+            config.wordMap[parameter[0]] = [];
+        }
+        config.wordMap[parameter[0]].push(parameter[1]);
         console.log(parameter[0] + " added");
     },
     // adds an entry to the usernameMap
@@ -244,7 +247,12 @@ const adminCommands = {
             reply("addusernamereaction requires 2 arguments, a name to react to and an emoji to react with!");
             return;
         }
-        config.usernameMap[parameter[0]] = parameter[1];
+
+        if (!config.usernameMap[parameter[0]]) {
+            config.usernameMap[parameter[0]] = [];
+        }
+        config.usernameMap[parameter[0]].push(parameter[1]);
+
         console.log(parameter[0] + " added");
     },
     // authorizes a user to execute admin commands without confirmation
