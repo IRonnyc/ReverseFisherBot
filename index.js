@@ -278,12 +278,40 @@ const adminCommands = {
             client.users.cache.get(parameter[0]).send(`You've been authorized permanently.`);
         }
     },
+    // change the wording of an emote
+    "changeemote": (parameter, reply) => {
+        if (parameter.length < 3) {
+            reply("addemote requires 3 arguments, the name of the emote, the text without a target and the text with a target! (use @author and @target for the author and target respectively)");
+            return;
+        }
+        if (parameter[1] === "") {
+            parameter[1] = config.emotes[parameter[0]][0];
+        }
+        if (parameter[2] === "") {
+            parameter[2] = config.emotes[parameter[0]][1];
+        }
+        config.emotes[parameter[0]] = [parameter[1], parameter[2]];
+        reply(parameter[0] + " changed");
+    },
     // revokes user privileges for the passed user
     "deauthorize": (parameter, reply) => {
         // deauthorize
         Authorize.deauthorizeUser(parameter[0]);
         // inform the user
         client.users.cache.get(parameter[0]).send(`Your privileges have been revoked.`);
+    },
+    // replaces the a string with another string in both instances of an emote
+    "fixemote": (parameter, reply) => {
+        if (parameter.length < 3) {
+            reply("fixemote requires 3 arguments, the name of the emote, the text to search for and its replacement. Passed parameters: " + parameter);
+            return;
+        }
+        let oldEmote = config.emotes[parameter[0]];
+        config.emotes[parameter[0]] = [
+            oldEmote[0].replace(parameter[1], parameter[2]), 
+            oldEmote[1].replace(parameter[1], parameter[2])
+        ];
+        reply(`${parameter[0]} changed:\n${config.emotes[parameter[0]][0]}\n${config.emotes[parameter[0]][1]}`);
     },
     // writes the current configuration to the config.json
     "saveconfig": (parameter, reply) => {
