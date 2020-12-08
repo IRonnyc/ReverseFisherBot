@@ -424,7 +424,7 @@ const handleEmotes = (msg) => {
                 target = "everyone"
             } else if (targetArray.length > 0) { // otherwise build the list of mentioned users
 
-                if (targetArray.length > 1 || roles.length > 1) {
+                if (targetArray.length > 1) {
                     // list all users except for the last and add an ", and " before the last
                     target = targetArray.slice(0, targetArray.length - 1).join(", ");
                     // finish up the last part of target
