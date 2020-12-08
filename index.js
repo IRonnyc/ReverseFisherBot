@@ -405,8 +405,8 @@ const handleEmotes = (msg) => {
         if (msg.content.startsWith(config.commandPrefix + key)) {
 
             let target = "";
-            // values of msg.mentions.users as array
-            let users = msg.mentions.users.array();
+            // values of msg.mentions as array
+            let targetArray = msg.mentions.users.array().concat(msg.mentions.roles.array());
 
             if (!allSnowflakesInSpecialEmoteTargetsResolved) {
                 tryResolvingSnowflakesInSpecialEmoteTargets();
@@ -415,22 +415,22 @@ const handleEmotes = (msg) => {
             for (const [key, name] of Object.entries(specialEmoteTargets)) {
                 let keyRegex = new RegExp(key, 'i');
                 if (keyRegex.test(msg.content)) {
-                    users.push(name);
+                    targetArray.push(name);
                 }
             }
 
             // if @everyone was mentioned, use everyone as target
             if (msg.mentions.everyone) {
                 target = "everyone"
-            } else if (users.length > 0) { // otherwise build the list of mentioned users
+            } else if (targetArray.length > 0) { // otherwise build the list of mentioned users
 
-                if (users.length > 1) {
+                if (targetArray.length > 1 || roles.length > 1) {
                     // list all users except for the last and add an ", and " before the last
-                    target = users.slice(0, users.length - 1).join(", ");
+                    target = targetArray.slice(0, targetArray.length - 1).join(", ");
                     // finish up the last part of target
-                    target = [target, users[users.length - 1]].join(", and ");
+                    target = [target, targetArray[targetArray.length - 1]].join(", and ");
                 } else {
-                    target = users[0];
+                    target = targetArray[0];
                 }
             }
 
