@@ -460,7 +460,7 @@ const handleEmotes = (msg) => {
     // for every emote
     for (let [key, reactions] of Object.entries(config.emotes)) {
         // if it starts with the commandPrefix, it's an emote
-        if (msg.content.startsWith(config.commandPrefix + key)) {
+        if (msg.content.startsWith(config.commandPrefix + key + ' ') || msg.content === config.commandPrefix + key) {
 
             let target = "";
             // values of msg.mentions as array
@@ -469,10 +469,13 @@ const handleEmotes = (msg) => {
             if (!allSnowflakesInSpecialEmoteTargetsResolved) {
                 tryResolvingSnowflakesInSpecialEmoteTargets();
             }
+
+            let msgText = msg.content.replace(key, "");
+
             // add used specialEmoteTargets to the list of users
             for (const [key, name] of Object.entries(specialEmoteTargets)) {
                 let keyRegex = new RegExp(key, 'i');
-                if (keyRegex.test(msg.content)) {
+                if (keyRegex.test(msgText)) {
                     targetArray.push(name);
                 }
             }
