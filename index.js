@@ -161,6 +161,33 @@ const sendWarning = (err) => {
     }
 }
 
+const replacePronouns = (authorRegex, text) => {
+    const doReplacing = pronouns => {
+        text = text.replace(/@subject/g, pronouns.subject);
+        text = text.replace(/@object/g, pronouns.object);
+
+        text = text.replace(/@dependent_possessive/g, pronouns.dependent_possessive);
+        text = text.replace(/@independent_possessive/g, pronouns.independent_possessive);
+
+        text = text.replace(/@reflexive/g, pronouns.reflexive);
+        text = text.replace(/@be/g, pronouns.be);
+        
+        return text;
+    }
+    for (const [key, userconfig] of Object.entries(config.userconfig)) {
+        // create a regex from the key
+        let keyRegex = new RegExp(key, 'i');
+
+        // test the regex against the author's username
+        if (keyRegex.test(authorRegex)) {
+            let pronouns = userconfig.pronouns;
+            // insert pronouns
+            return doReplacing(pronouns);
+        }
+    }
+    return doReplacing(config.userconfig.default.pronouns);
+}
+
 // prints the /help output as a pagable message
 const printHelp = (msg) => {
     // if the helpTextPages have not yet been built, do that now
@@ -313,6 +340,37 @@ const adminCommands = {
         ];
         reply(`${parameter[0]} changed:\n${config.emotes[parameter[0]][0]}\n${config.emotes[parameter[0]][1]}`);
     },
+    "pronouns": (parameter, reply) => {
+        if (parameter.length < 7) {
+            reply("pronouns requires 7 arguments, the username to configure pronouns for (their username, not their display name!), their personal pronouns as subject, object, their dependent possesive pronoun, their independent possesive pronoun, their reflexive pronoun, and the way they wish \"to be\" to be conjugated. See the following table for the most common examples:"+
+                `\`
+                | Subject | Object | Dependent possessive | Independent possessive | Reflexive | Be  |
+                |---------|--------|----------------------|------------------------|-----------|-----|
+                | he      | him    | his                  | his                    | himself   | is  |
+                | she     | her    | her                  | hers                   | herself   | is  |
+                | it      | it     | its                  | its                    | itself    | is  |
+                | they    | them   | their                | theirs                 | themself  | are | \``);
+
+            return;
+        }
+        let user = client.users.cache.find(user => user.username.toLowerCase() === parameter[0].toLowerCase());
+        if (!user) {
+            reply("Couldn't find user " + parameter[0]);
+            return;
+        }
+        let username = user.username;
+
+        config.userconfig[username].pronouns = {
+            subject: parameter[1], 
+            object: parameter[2],
+            dependent_possessive: parameter[3],
+            independent_possessive: parameter[4],
+            reflexive: parameter[5],
+            be: parameter[6]
+        };
+        
+        reply("Done!");
+    },
     // writes the current configuration to the config.json
     "saveconfig": (parameter, reply) => {
 
@@ -424,7 +482,7 @@ const handleEmotes = (msg) => {
                 target = "everyone"
             } else if (targetArray.length > 0) { // otherwise build the list of mentioned users
 
-                if (targetArray.length > 1 || roles.length > 1) {
+                if (targetArray.length > 1) {
                     // list all users except for the last and add an ", and " before the last
                     target = targetArray.slice(0, targetArray.length - 1).join(", ");
                     // finish up the last part of target
@@ -453,8 +511,33 @@ const handleEmotes = (msg) => {
             // select answer depending on if target is set (= was somebody mentioned?)
             let answer = target === "" ? reactions[0] : reactions[1];
 
+            // insert author and target
+            answer = answer.replace(/@author/g, msg.author).replace(/@target/g, target);
+            // iterate over userconfigs to find the regedx that matches the author
+            answer = replacePronouns(msg.author.username, answer);
+            for (const [key, userconfig] of Object.entries(config.userconfig)) {
+                // create a regex from the key
+                let keyRegex = new RegExp(key, 'i');
+        
+                // test the regex against the author's username
+                if (keyRegex.test(msg.author.username)) {
+                    let pronouns = userconfig.pronouns;
+                    // insert pronouns
+                    answer = answer.replace(/@subject/g, pronouns.subject);
+                    answer = answer.replace(/@object/g, pronouns.object);
+
+                    answer = answer.replace(/@dependent_possessive/g, pronouns.dependent_possessive);
+                    answer = answer.replace(/@independent_possessive/g, pronouns.independent_possessive);
+
+                    answer = answer.replace(/@reflexive/g, pronouns.reflexive);
+                    answer = answer.replace(/@be/g, pronouns.be);
+                }
+                // we're done here
+                break;
+            }
+
             // send emote text
-            msg.channel.send(answer.replace(/@author/g, msg.author).replace(/@target/g, target)).then(sent => { }).catch(console.error);
+            msg.channel.send(answer).then(sent => { }).catch(console.error);
 
             // if the bot has the permission to do so, delete the message triggering the emote
             if (msg.deletable) {
@@ -514,14 +597,14 @@ const handleWordMap = (msg) => {
 // handles the userMap and returns if the message should be looked at further
 const handleUserMap = (msg) => {
     // iterate over the usernameMap
-    for (const [key, reactions] of Object.entries(config.usernameMap)) {
+    for (const [key, userconfig] of Object.entries(config.userconfig)) {
         // create a regex from the key
         let keyRegex = new RegExp(key, 'i');
 
         // test the regex against the author's username
         if (keyRegex.test(msg.author.username)) {
             // add reaction if the regex matches
-            addReactions(msg, reactions);
+            addReactions(msg, userconfig.react);
         }
     }
     return true;
