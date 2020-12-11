@@ -179,7 +179,7 @@ const replacePronouns = (authorRegex, text) => {
         let keyRegex = new RegExp(key, 'i');
 
         // test the regex against the author's username
-        if (keyRegex.test(authorRegex)) {
+        if (keyRegex.test(authorRegex) && userconfig.pronouns) {
             let pronouns = userconfig.pronouns;
             // insert pronouns
             return doReplacing(pronouns);
@@ -368,7 +368,7 @@ const adminCommands = {
             reflexive: parameter[5],
             be: parameter[6]
         };
-        
+
         reply("Done!");
     },
     // writes the current configuration to the config.json
