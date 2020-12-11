@@ -327,6 +327,10 @@ const adminCommands = {
         // inform the user
         client.users.cache.get(parameter[0]).send(`Your privileges have been revoked.`);
     },
+    // echos the input, one message per parameter
+    "echo": (parameter, reply) => {
+        parameter.forEach(reply);
+    },
     // replaces the a string with another string in both instances of an emote
     "fixemote": (parameter, reply) => {
         if (parameter.length < 3) {
@@ -455,12 +459,16 @@ const handleAdminCommands = (msg) => {
     return true;
 }
 
+const matchEmoteName = (key, msgText) => {
+    return msgText.startsWith(config.commandPrefix + key + ' ') || msgText === config.commandPrefix + key;
+}
+
 // handles emotes and returns if the message should be looked at further (= has not been deleted).
 const handleEmotes = (msg) => {
     // for every emote
     for (let [key, reactions] of Object.entries(config.emotes)) {
         // if it starts with the commandPrefix, it's an emote
-        if (msg.content.startsWith(config.commandPrefix + key + ' ') || msg.content === config.commandPrefix + key) {
+        if (matchEmoteName(key, msg.content)) {
 
             let target = "";
             // values of msg.mentions as array
