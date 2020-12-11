@@ -33,8 +33,31 @@ add a config.json that contains your api token under the 'token' key and then re
         "n(o)+(\\W|\\b)": ["❌"],
         "nose": ["👃"]
     },
-    "usernameMap": {
-        "IRonnyc": ["👼"]
+    "userconfig": {
+        "default": {
+            "react": [],
+            "pronouns": {
+                "subject": "they",
+                "object": "them",
+                "dependent_possessive": "their",
+                "independent_possessive": "theirs",
+                "reflexive": "themself",
+                "be": "are"
+            }
+        },
+        "IRonnyc": {
+            "react": [
+                "👼"
+            ],
+            "pronouns": {
+                "subject": "they",
+                "object": "them",
+                "dependent_possessive": "their",
+                "independent_possessive": "theirs",
+                "reflexive": "themself",
+                "be": "are"
+            }
+        }
     },
     "messageTitleIgnore": [
         "someTitle"
