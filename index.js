@@ -16,6 +16,8 @@ const AuthorizeDiscord = require('./authorise_discord');
 const Discord = require('discord.js');
 const client = new Discord.Client();
 
+const script = require('./script.js');
+
 // include sinnyFormatter
 const sinnyFormatter = require('./sinnyFormatter');
 
@@ -26,7 +28,6 @@ var specialEmoteTargets = undefined;
 
 var allSnowflakesInSpecialEmoteTargetsResolved = false;
 var helpTextPages = [];
-
 
 // login using the token defined in config.json
 client.login(config.token);
@@ -100,7 +101,7 @@ const buildUpHelpText = () => {
     // get a list of all emotes and sort it alphabetically
     let emotes = Object.entries(config.emotes).sort();
     // define and empty container string
-    helpText = "";
+    let helpText = "";
     // counter for indexing the next page to write to
     let page = 0;
     // iterate over emotes
@@ -245,12 +246,47 @@ const printHelp = (msg) => {
     return false;
 }
 
+// executes the separate steps
+const executeSteps = (steps, params) => {
+    // go through all steps
+    for(let i = 0; i < steps.length; i++) {
+        // if the step is a function in script, call it with params
+        if (script[steps[i]]) {
+            return script[steps[i]](params);
+        // if it is a function in config, resolve the call
+        } else if (config.functions[steps[i]] != undefined) {
+            let substeps = config.functions[steps[i]].split("->");
+            params = executeSteps(substeps, params);
+        // otherwise put it on the stack
+        } else {
+            params.push(steps[i]);
+        }
+    }
+    return params;
+}
+
+// handle user function calls
+const handleCall = (msg) => {
+    // get the message's text
+    let text = msg.content.replace(config.commandPrefix + 'call', '');
+    // break text into the individual steps of the call
+    let steps = text.split('->').map(step => step.trim());
+    // create params stack
+    let params = [];
+
+    params = executeSteps(steps, params);
+
+    msg.reply(params);
+
+    return false;
+}
+
 // array of admin command functions
 const adminCommands = {
     // adds an emote to the list of emotes in config
     "addemote": (parameter, reply) => {
         if (parameter.length < 3) {
-            reply("addemote requires 2 arguments, the name of the emote, the text without a target and the text with a target! (use @author and @target for the author and target respectively)");
+            reply("addemote requires 3 arguments, the name of the emote, the text without a target and the text with a target! (use @author and @target for the author and target respectively)");
             return;
         }
         config.emotes[parameter[0]] = [parameter[1], parameter[2]];
@@ -326,6 +362,14 @@ const adminCommands = {
         Authorize.deauthorizeUser(parameter[0]);
         // inform the user
         client.users.cache.get(parameter[0]).send(`Your privileges have been revoked.`);
+    },
+    "define": (parameter, reply) => {
+        if (parameter.length < 2) {
+            reply("define requires 2 arguments, the name of the function, and the code)");
+            return;
+        }
+        config.functions[parameter[0]] = parameter[1];
+        console.log(parameter[0] + " added");
     },
     // echos the input, one message per parameter
     "echo": (parameter, reply) => {
@@ -674,6 +718,13 @@ client.on('message', msg => {
         // handle /help
         if (msg.content.startsWith(config.commandPrefix + 'help')) {
             if (!printHelp(msg)) {
+                return;
+            }
+        }
+
+        // handle /call
+        if(msg.content.startsWith(config.commandPrefix + 'call')) {
+            if (!handleCall(msg)) {
                 return;
             }
         }
