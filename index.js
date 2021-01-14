@@ -463,8 +463,8 @@ const executeAdminCommand = (index, parameter, reply) => {
         sendErrorWarning(`Admin command ${index} could not be found!`);
     }
 
-    if (configChangesSinceLastSave > config.saveAfterConfigChanges) {
-        adminCommands["saveconfig"](null, null);
+    if (configChangesSinceLastSave >= config.saveAfterConfigChanges) {
+        adminCommands["saveconfig"]([], null);
     }
 }
 
