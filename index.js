@@ -29,6 +29,8 @@ var specialEmoteTargets = undefined;
 var allSnowflakesInSpecialEmoteTargetsResolved = false;
 var helpTextPages = [];
 
+var configChangesSinceLastSave = 0;
+
 // login using the token defined in config.json
 client.login(config.token);
 
@@ -291,6 +293,7 @@ const adminCommands = {
         }
         config.emotes[parameter[0]] = [parameter[1], parameter[2]];
         console.log(parameter[0] + " added");
+        configChangesSinceLastSave++;
     },
     // adds an entry to the wordMap
     "addwordreaction": (parameter, reply) => {
@@ -303,6 +306,7 @@ const adminCommands = {
         }
         config.wordMap[parameter[0]].push(parameter[1]);
         console.log(parameter[0] + " added");
+        configChangesSinceLastSave++;
     },
     // adds an entry to the usernameMap
     "addusernamereaction": (parameter, reply) => {
@@ -317,6 +321,7 @@ const adminCommands = {
         config.usernameMap[parameter[0]].push(parameter[1]);
 
         console.log(parameter[0] + " added");
+        configChangesSinceLastSave++;
     },
     // authorizes a user to execute admin commands without confirmation
     "authorize": (parameter, reply) => {
@@ -355,6 +360,7 @@ const adminCommands = {
         }
         config.emotes[parameter[0]] = [parameter[1], parameter[2]];
         reply(parameter[0] + " changed");
+        configChangesSinceLastSave++;
     },
     // revokes user privileges for the passed user
     "deauthorize": (parameter, reply) => {
@@ -370,6 +376,7 @@ const adminCommands = {
         }
         config.functions[parameter[0]] = parameter[1];
         console.log(parameter[0] + " added");
+        configChangesSinceLastSave++;
     },
     // echos the input, one message per parameter
     "echo": (parameter, reply) => {
@@ -386,6 +393,7 @@ const adminCommands = {
             oldEmote[0].replace(parameter[1], parameter[2]), 
             oldEmote[1].replace(parameter[1], parameter[2])
         ];
+        configChangesSinceLastSave++;
         reply(`${parameter[0]} changed:\n${config.emotes[parameter[0]][0]}\n${config.emotes[parameter[0]][1]}`);
     },
     "pronouns": (parameter, reply) => {
@@ -416,8 +424,8 @@ const adminCommands = {
             reflexive: parameter[5],
             be: parameter[6]
         };
-
         reply("Done!");
+        configChangesSinceLastSave++;
     },
     // writes the current configuration to the config.json
     "saveconfig": (parameter, reply) => {
@@ -428,6 +436,7 @@ const adminCommands = {
         } else { // otherwise just write to config.json
             Configure.writeConfig(config);
         }
+        configChangesSinceLastSave = 0;
     },
     "static": (parameter, reply) => {
         sinnyFormatter.getFormattedString(config.raidStaticSource, "static", parameter, (formattedString) => reply(formattedString));
@@ -452,6 +461,10 @@ const executeAdminCommand = (index, parameter, reply) => {
         adminCommands[index](parameter, reply);
     } else { // else send error that the admin command could not be found
         sendErrorWarning(`Admin command ${index} could not be found!`);
+    }
+
+    if (configChangesSinceLastSave > config.saveAfterConfigChanges) {
+        adminCommands["saveconfig"](null, null);
     }
 }
 
