@@ -248,6 +248,8 @@ const printHelp = (msg) => {
     return false;
 }
 
+const tokenizeSteps = (steps) => steps.split("->").map(step => step.trim());
+
 // executes the separate steps
 const executeSteps = async (steps, params) => {
     // go through all steps
@@ -257,7 +259,7 @@ const executeSteps = async (steps, params) => {
             return await script[steps[i]](params);
         // if it is a function in config, resolve the call
         } else if (config.functions[steps[i]] != undefined) {
-            let substeps = config.functions[steps[i]].split("->");
+            let substeps = tokenizeSteps(config.functions[steps[i]]);
             params = await executeSteps(substeps, params);
         // otherwise put it on the stack
         } else {
@@ -272,7 +274,7 @@ const handleCall = async (msg) => {
     // get the message's text
     let text = msg.content.replace(config.commandPrefix + 'call', '');
     // break text into the individual steps of the call
-    let steps = text.split('->').map(step => step.trim());
+    let steps = tokenizeSteps(text);
     // create params stack
     let params = [];
 
