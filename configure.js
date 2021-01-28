@@ -81,7 +81,10 @@ async function usingConfig (func) {
     }
     // count functions that use the config up and call the function
     configInUse++;
-    func();
+    let ret = func();
+    if (ret instanceof Promise) {
+        await ret;
+    }
     // decrease again
     configInUse--;
 }

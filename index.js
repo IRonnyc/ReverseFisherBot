@@ -249,16 +249,16 @@ const printHelp = (msg) => {
 }
 
 // executes the separate steps
-const executeSteps = (steps, params) => {
+const executeSteps = async (steps, params) => {
     // go through all steps
     for(let i = 0; i < steps.length; i++) {
         // if the step is a function in script, call it with params
         if (script[steps[i]]) {
-            return script[steps[i]](params);
+            return await script[steps[i]](params);
         // if it is a function in config, resolve the call
         } else if (config.functions[steps[i]] != undefined) {
             let substeps = config.functions[steps[i]].split("->");
-            params = executeSteps(substeps, params);
+            params = await executeSteps(substeps, params);
         // otherwise put it on the stack
         } else {
             params.push(steps[i]);
@@ -268,7 +268,7 @@ const executeSteps = (steps, params) => {
 }
 
 // handle user function calls
-const handleCall = (msg) => {
+const handleCall = async (msg) => {
     // get the message's text
     let text = msg.content.replace(config.commandPrefix + 'call', '');
     // break text into the individual steps of the call
@@ -276,7 +276,7 @@ const handleCall = (msg) => {
     // create params stack
     let params = [];
 
-    params = executeSteps(steps, params);
+    params = await executeSteps(steps, params);
 
     msg.reply(params);
 
@@ -714,8 +714,8 @@ client.on('ready', () => {
 });
 
 // when a message is received
-client.on('message', msg => {
-    Configure.usingConfig(() => {
+client.on('message', (msg) => {
+    Configure.usingConfig(async () => {
         // for every embedded message in the message
         for (let i = 0; i < msg.embeds.length; i++) {
             // if it contains a title that is included in the list
@@ -737,7 +737,8 @@ client.on('message', msg => {
 
         // handle /call
         if(msg.content.startsWith(config.commandPrefix + 'call')) {
-            if (!handleCall(msg)) {
+            let ret = await handleCall(msg);
+            if (!ret) {
                 return;
             }
         }
