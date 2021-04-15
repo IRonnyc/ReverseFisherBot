@@ -522,6 +522,81 @@ const matchEmoteName = (key, msgText) => {
     return msgText.startsWith(config.commandPrefix + key + ' ') || msgText === config.commandPrefix + key;
 }
 
+const tryDeleteMessage = (msg) => {
+    // if the bot has the permission to do so, delete the message triggering the emote
+    if (msg.deletable) {
+        msg.delete({ timeout: 1000 });
+        // message deleted, so no further processing of the message is possible
+        return true;
+    } else {
+        msg.react("💔");
+    }
+    return false;
+}
+
+const sendEmoteResponse = (msg, emoteArray) => {
+    let target = "";
+    // values of msg.mentions as array
+    let targetArray = msg.mentions.users.array().concat(msg.mentions.roles.array());
+
+    let msgText = msg.content.replace(/${config.commandPrefix}\w+/gi, "");
+
+    if (!allSnowflakesInSpecialEmoteTargetsResolved) {
+        tryResolvingSnowflakesInSpecialEmoteTargets();
+    }
+
+    // add used specialEmoteTargets to the list of users
+    for (const [key, name] of Object.entries(specialEmoteTargets)) {
+        let keyRegex = new RegExp(key, 'i');
+        if (keyRegex.test(msgText)) {
+            targetArray.push(name);
+        }
+    }
+
+    // if @everyone was mentioned, use everyone as target
+    if (msg.mentions.everyone) {
+        target = "everyone"
+    } else if (targetArray.length > 0) { // otherwise build the list of mentioned users
+
+        if (targetArray.length > 1) {
+            // list all users except for the last and add an ", and " before the last
+            target = targetArray.slice(0, targetArray.length - 1).join(", ");
+            // finish up the last part of target
+            target = [target, targetArray[targetArray.length - 1]].join(", and ");
+        } else {
+            target = targetArray[0];
+        }
+    }
+
+    // select answer depending on if target is set (= was somebody mentioned?)
+    let answer = target === "" ? emoteArray[0] : emoteArray[1];
+
+    // insert author and target
+    answer = answer.replace(/@author/g, msg.author).replace(/@target/g, target);
+    // iterate over userconfigs to find the regedx that matches the author
+    answer = replacePronouns(msg.author.username, answer);
+
+    // send emote text
+    return msg.channel.send(answer);
+
+}
+
+const handleUnimplementedGreetings = (msg) => {
+    const regex = /\w(morning|day|evening|night)/gi;
+    if (regex.test(msg.content)) {
+        let text = msg.content.replace(config.commandPrefix, "");
+        let result = text.replace( /([A-Z])/g, " $1" );
+        let sentence = result.charAt(0).toUpperCase() + result.slice(1);
+        let response = ["@author wishes everybody a " + sentence + ".", "@author wishes @target a " + sentence + "."];
+
+        sendEmoteResponse(msg, response).then(sent => { sent.react(config.autoFulfillEmote) }).catch(console.error);
+
+        tryDeleteMessage(msg);
+        return true;
+    }
+    return false;
+}
+
 // handles emotes and returns if the message should be looked at further (= has not been deleted).
 const handleEmotes = (msg) => {
     // for every emote
@@ -529,38 +604,6 @@ const handleEmotes = (msg) => {
         // if it starts with the commandPrefix, it's an emote
         if (matchEmoteName(key, msg.content)) {
 
-            let target = "";
-            // values of msg.mentions as array
-            let targetArray = msg.mentions.users.array().concat(msg.mentions.roles.array());
-
-            if (!allSnowflakesInSpecialEmoteTargetsResolved) {
-                tryResolvingSnowflakesInSpecialEmoteTargets();
-            }
-
-            let msgText = msg.content.replace(key, "");
-
-            // add used specialEmoteTargets to the list of users
-            for (const [key, name] of Object.entries(specialEmoteTargets)) {
-                let keyRegex = new RegExp(key, 'i');
-                if (keyRegex.test(msgText)) {
-                    targetArray.push(name);
-                }
-            }
-
-            // if @everyone was mentioned, use everyone as target
-            if (msg.mentions.everyone) {
-                target = "everyone"
-            } else if (targetArray.length > 0) { // otherwise build the list of mentioned users
-
-                if (targetArray.length > 1) {
-                    // list all users except for the last and add an ", and " before the last
-                    target = targetArray.slice(0, targetArray.length - 1).join(", ");
-                    // finish up the last part of target
-                    target = [target, targetArray[targetArray.length - 1]].join(", and ");
-                } else {
-                    target = targetArray[0];
-                }
-            }
 
             // resolve if-else if necessary
             if (reactions.if) {
@@ -578,56 +621,23 @@ const handleEmotes = (msg) => {
                     reactions = reactions.else;
                 }
             }
-            // select answer depending on if target is set (= was somebody mentioned?)
-            let answer = target === "" ? reactions[0] : reactions[1];
 
-            // insert author and target
-            answer = answer.replace(/@author/g, msg.author).replace(/@target/g, target);
-            // iterate over userconfigs to find the regedx that matches the author
-            answer = replacePronouns(msg.author.username, answer);
-            for (const [key, userconfig] of Object.entries(config.userconfig)) {
-                // create a regex from the key
-                let keyRegex = new RegExp(key, 'i');
-        
-                // test the regex against the author's username
-                if (keyRegex.test(msg.author.username)) {
-                    let pronouns = userconfig.pronouns;
-                    // insert pronouns
-                    answer = answer.replace(/@subject/g, pronouns.subject);
-                    answer = answer.replace(/@object/g, pronouns.object);
-
-                    answer = answer.replace(/@dependent_possessive/g, pronouns.dependent_possessive);
-                    answer = answer.replace(/@independent_possessive/g, pronouns.independent_possessive);
-
-                    answer = answer.replace(/@reflexive/g, pronouns.reflexive);
-                    answer = answer.replace(/@be/g, pronouns.be);
-                }
-                // we're done here
-                break;
-            }
-
-            // send emote text
-            msg.channel.send(answer).then(sent => { }).catch(console.error);
-
-            // if the bot has the permission to do so, delete the message triggering the emote
-            if (msg.deletable) {
-                msg.delete({ timeout: 1000 });
-                // message deleted, so no further processing of the message is possible
-                return false;
-            } else {
-                msg.react("💔");
-            }
-            // continue processing
-            return true;
+            sendEmoteResponse(msg, reactions).then(sent => { }).catch(console.error);
+            tryDeleteMessage(msg);
+            return false;
         }
     }
-    // notify admin that the requetsed emote doesn't exist
-    sendErrorWarning(`Unrecognized emote request: ${msg.content}`);
+    if (!handleUnimplementedGreetings(msg)) {
+        // notify admin that the requetsed emote doesn't exist
+        sendErrorWarning(`Unrecognized emote request: ${msg.content}`);
+    } else {
+        sendWarning(`Unrecognized emote request resolved as greeting: ${msg.content}`);
+    }
     return true;
 }
 
 // adds all emojis in reactions to msg
-function addReactions(msg, reactions) {
+const addReactions = (msg, reactions) => {
     // iterate over reactions
     for (let i = 0; i < reactions.length; i++) {
         let emoji = reactions[i];

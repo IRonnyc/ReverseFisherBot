@@ -15,6 +15,7 @@ add a config.json that contains your api token under the 'token' key and then re
         }
     ],
     "commandPrefix": "/",
+    "autoFulfillEmote": "🤖",
     "adminCommandPrefix": "!/",
     "activityChangeInterval": 600,
     "helpPageLength": 1000,
@@ -94,6 +95,9 @@ array of activities, each containing a name and a type object. supported types (
 
 ## commandPrefix
 This sets the character(s) that starts a command the bot should interpret.
+
+## autoFulfillEmote
+The bot will add the emoji as a reaction to autofulfilled emotes (e. g. greetings);
 
 ## adminCommandPrefix
 This sets the character(s) that start an admin command, that needs to be confirmed by the adminContact. Make sure it doesn't start with your normal command prefix, so it doesn't trigger unimplemented emote warnings.
