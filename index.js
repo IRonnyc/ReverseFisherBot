@@ -584,7 +584,7 @@ const sendEmoteResponse = (msg, emoteArray) => {
 const handleUnimplementedGreetings = (msg) => {
     const regex = /\w(morning|day|evening|night)/gi;
     if (regex.test(msg.content)) {
-        let text = msg.content.replace(config.commandPrefix, "");
+        let text = msg.content.split(" ", 2)[0].replace(config.commandPrefix, "");
         let result = text.replace( /([A-Z])/g, " $1" );
         let sentence = result.charAt(0).toUpperCase() + result.slice(1);
         let response = ["@author wishes everybody a " + sentence + ".", "@author wishes @target a " + sentence + "."];
