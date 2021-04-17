@@ -278,7 +278,13 @@ const handleCall = async (msg) => {
 
     // create params stack
     let params = [];
-    
+
+    // if the adminContact hasn't been loaded yet
+    if (!adminContact) {
+        // try to load it
+        Configure.usingConfig(tryLoadingAdminContact);
+    }
+
     if (Authorize.hasPermission(msg.author.id)) {
         params = await executeSteps(steps, params);
         msg.reply(params);
