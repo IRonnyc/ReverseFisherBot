@@ -22,7 +22,7 @@ functions["func_divide"] = async (params) => {
 
 functions["description"]["func_delay"] = "Delays the next step.";
 functions["func_delay"] = async (params) => {
-    await new Promise((resolve) => setTimeout(resolve, parseFloat(params[0])));
+    await new Promise((resolve) => setTimeout(resolve, parseFloat(params.pop())));
     return params;
 }
 

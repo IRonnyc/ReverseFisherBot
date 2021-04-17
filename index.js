@@ -275,12 +275,33 @@ const handleCall = async (msg) => {
     let text = msg.content.replace(config.commandPrefix + 'call', '');
     // break text into the individual steps of the call
     let steps = tokenizeSteps(text);
+
     // create params stack
     let params = [];
-
-    params = await executeSteps(steps, params);
-
-    msg.reply(params);
+    
+    if (Authorize.hasPermission(msg.author.id)) {
+        params = await executeSteps(steps, params);
+        msg.reply(params);
+    } else { 
+        // otherwise use the set requestAuthorization method to 
+        // ask the admin to authorize the command
+        Authorize.requestAuthorization(msg.author, msg.content, [])
+            // admin approves
+            .then(async () => {
+                msg.author.send("Your request has been approved!");
+                params = await executeSteps(steps, params);
+                msg.reply(params);
+            })
+            // admin denies it or doesn't respond in time
+            .catch((e) => {
+                msg.reply("You are not authorized to use this feature.")
+                console.log(e);
+            });
+        
+        // inform the user that they are not authorized and that the admin has been asked 
+        // to confirm the request
+        msg.author.send("You are not authorized to execute this command. The administrator has been asked to confirm your request.");
+    }
 
     return false;
 }
