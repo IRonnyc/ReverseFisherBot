@@ -566,7 +566,11 @@ const sendEmoteResponse = (msg, emoteArray) => {
     // values of msg.mentions as array
     let targetArray = msg.mentions.users.array().concat(msg.mentions.roles.array());
 
-    let msgText = msg.content.replace(/${config.commandPrefix}\w+/gi, "");
+    let regex = new RegExp("^" + config.commandPrefix.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&') + "\\w+(\\s|$)", 'gi');
+    let msgText = msg.content.replace(regex, "");
+
+    console.log("regex: " + regex);
+    console.log("msgText: " + msgText);
 
     if (!allSnowflakesInSpecialEmoteTargetsResolved) {
         tryResolvingSnowflakesInSpecialEmoteTargets();
