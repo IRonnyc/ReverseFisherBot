@@ -569,9 +569,6 @@ const sendEmoteResponse = (msg, emoteArray) => {
     let regex = new RegExp("^" + config.commandPrefix.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&') + "\\w+(\\s|$)", 'gi');
     let msgText = msg.content.replace(regex, "");
 
-    console.log("regex: " + regex);
-    console.log("msgText: " + msgText);
-
     if (!allSnowflakesInSpecialEmoteTargetsResolved) {
         tryResolvingSnowflakesInSpecialEmoteTargets();
     }
