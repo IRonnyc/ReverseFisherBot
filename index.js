@@ -609,7 +609,7 @@ const sendEmoteResponse = (msg, emoteArray) => {
 }
 
 const handleUnimplementedGreetings = (msg) => {
-    const regex = /\w(morning|day|evening|night)/gi;
+    const regex = /\w(Morning|Day|Evening|Night)/g;
     if (regex.test(msg.content)) {
         let text = msg.content.split(" ", 2)[0].replace(config.commandPrefix, "");
         let result = text.replace( /([A-Z])/g, " $1" );
