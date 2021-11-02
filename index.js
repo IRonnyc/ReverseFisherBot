@@ -191,6 +191,13 @@ const replacePronouns = (authorRegex, text) => {
     return doReplacing(config.userconfig.default.pronouns);
 }
 
+// reacts with the passed emoji, if it is a valid reaction
+const reactWith = (emoji, msg) => {
+    if (emoji != null && emoji != undefined && emoji != "") {
+        msg.react(emoji);
+    }
+}
+
 // prints the /help output as a pagable message
 const printHelp = (msg) => {
     // if the helpTextPages have not yet been built, do that now
@@ -556,7 +563,7 @@ const tryDeleteMessage = (msg) => {
         // message deleted, so no further processing of the message is possible
         return true;
     } else {
-        msg.react("💔");
+        reactWith(config.errorReaction, msg);
     }
     return false;
 }
@@ -617,7 +624,7 @@ const handleUnimplementedGreetings = (msg) => {
         let sentence = result.charAt(0).toUpperCase() + result.slice(1);
         let response = ["@author wishes everybody a " + sentence + ".", "@author wishes @target a " + sentence + "."];
 
-        sendEmoteResponse(msg, response).then(sent => { sent.react(config.autoFulfillEmote) }).catch(console.error);
+        sendEmoteResponse(msg, response).then(sent => { reactWith(config.autoFulfillEmote, sent) }).catch(console.error);
 
         tryDeleteMessage(msg);
         return true;
@@ -666,6 +673,9 @@ const handleEmotes = (msg) => {
 
 // adds all emojis in reactions to msg
 const addReactions = (msg, reactions) => {
+    if (reactions == null || reactions == undefined || reactions.length == 0) {
+        return;
+    }
     // iterate over reactions
     for (let i = 0; i < reactions.length; i++) {
         let emoji = reactions[i];
@@ -682,7 +692,7 @@ const addReactions = (msg, reactions) => {
             }
         }
         // add the emoji
-        msg.react(emoji);
+        reactWith(emoji, msg);
     }
 }
 
@@ -765,8 +775,8 @@ client.on('message', (msg) => {
             }
         }
 
-        // add the 🐟 emoji
-        msg.react('🐟');
+        // add the base reaction emoji if one is set
+        reactWith(config.baseReaction, msg);
 
         // handle /help
         if (msg.content.startsWith(config.commandPrefix + 'help')) {
