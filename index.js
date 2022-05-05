@@ -70,7 +70,7 @@ const updateSlashCommands = () => {
     for (const [key, values] of emotes) {
         let description = values[0] + "/" + values[1];
         if (description.length > 100) {
-            description = description.substr(0, 100);
+            description = description.substr(0, 99);
         }
         commands[commands.length] = {
             name: key,
