@@ -9,6 +9,9 @@
     "discord.js": "^13.6.0",
     "nodemon": "^2.0.16"
   },
+  "optionalDependencies": {
+    "fsevents": "^2.1.2"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
