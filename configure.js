@@ -1,5 +1,9 @@
 const fs = require('fs');
 
+// include discordjs rest and discord routes
+const { REST } = require('@discordjs/rest');
+const { Routes } = require('discord-api-types/v9');
+
 let configInUse = 0;
 let configUpdating = false;
 
@@ -7,19 +11,27 @@ let configUpdating = false;
 
 // reads the config synch
 const readConfigSync = () => {
-    return JSON.parse(fs.readFileSync('./config.json'));
+    configUpdating = true;
+
+    let config = JSON.parse(fs.readFileSync('./config.json'));
+
+    configUpdating = false;
+
+    return config;
 }
 
 // reads the config asynch
 const readConfig = (then) => {
     return fs.readFile('config.json', (err, data) => {
         if (err) throw err;
-        // no error -> parse data and execute passed function
-        then(JSON.parse(data));
+
+        // no error -> parse data, update slash commands and execute passed function
+
+        let config = JSON.parse(data)
+
+        then(config);
     })
 }
-
-// define functions to write config back to drive
 
 // writes the data synch
 const writeConfigSync = (data, path = "./config.json") => {

@@ -1,5 +1,6 @@
 # the apps config file, containing your token
 config.json
+config.json.bak
 
 # Logs
 logs

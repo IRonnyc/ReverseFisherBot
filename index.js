@@ -14,7 +14,7 @@ const AuthorizeDiscord = require('./authorise_discord');
 
 // load discord.js and create the client
 const Discord = require('discord.js');
-const client = new Discord.Client();
+const client = new Discord.Client({ intents: [Discord.Intents.GUILD_MESSAGES | Discord.Intents.DIRECT_MESSAGES]});
 
 const script = require('./script.js');
 
@@ -57,11 +57,33 @@ const updateConfig = () => {
         // finally authorize admin and authorized users
         Authorize.authorizeUser(config.adminContact);
         Authorize.authorizeUsers(config.authorizedUsers);
-        console.log("finished updating config!");
+
+        updateSlashCommands();
     });
 }
-// watch the config and reload it on change. Then reresolve snowflakes and rebuild the help pages.
-Configure.watchConfig(updateConfig);
+
+// update slash commands
+const updateSlashCommands = () => {
+    let emotes = Object.entries(config.emotes).sort();
+    let commands = [];
+
+    for (const [key, values] of emotes) {
+        let description = values[0] + "/" + values[1];
+        if (description.length > 100) {
+            description = description.substr(0, 100);
+        }
+        commands[commands.length] = {
+            name: key,
+            description: values[0] + "/" + values[1]
+        }
+    }
+
+    client.application.commands.set(commands)
+        .then(console.log)
+        .catch(console.error);
+
+    console.log("updated slash commands");
+}
 
 // tries to resolve the adminContact from the client's cache
 const tryLoadingAdminContact = () => {
@@ -757,6 +779,13 @@ client.on('ready', () => {
     // log client user tag and set presence
     console.log(`Logged in as ${client.user.tag}!`);
 
+    // start watching the config
+    Configure.watchConfig(updateConfig);
+
+    // update slash command list
+    updateSlashCommands();
+
+    // setup random activity
     setRandomActivity();
 
     // sets a timer to change the activity regularly
