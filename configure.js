@@ -1,9 +1,5 @@
 const fs = require('fs');
 
-// include discordjs rest and discord routes
-const { REST } = require('@discordjs/rest');
-const { Routes } = require('discord-api-types/v9');
-
 let configInUse = 0;
 let configUpdating = false;
 
