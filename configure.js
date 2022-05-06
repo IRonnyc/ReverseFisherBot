@@ -1,15 +1,15 @@
 const fs = require('fs');
 
-let configInUse = 0;
+let configInUse = {};
 let configUpdating = false;
 
 // define functions to read config from drive
 
 // reads the config synch
-const readConfigSync = () => {
+const readConfigSync = (path) => {
     configUpdating = true;
 
-    let config = JSON.parse(fs.readFileSync('./config.json'));
+    let config = JSON.parse(fs.readFileSync(path));
 
     configUpdating = false;
 
@@ -17,27 +17,24 @@ const readConfigSync = () => {
 }
 
 // reads the config asynch
-const readConfig = (then) => {
-    return fs.readFile('config.json', (err, data) => {
+const readConfig = (path, then) => {
+    return fs.readFile(path, (err, data) => {
         if (err) throw err;
 
         // no error -> parse data, update slash commands and execute passed function
-
-        let config = JSON.parse(data)
-
-        then(config);
+        then(JSON.parse(data))
     })
 }
 
 // writes the data synch
-const writeConfigSync = (data, path = "./config.json") => {
+const writeConfigSync = (data, path) => {
     // stringify with 4 as the 3rd parameter ensures pretty formatting of the file 
     // with 4 spaces as indentation
     return fs.writeFileSync(path, JSON.stringify(data, null, 4));
 }
 
 // writes the data asynch
-const writeConfig = (data, path = "./config.json") => {
+const writeConfig = (data, path) => {
     // stringify with 4 as the 3rd parameter ensures pretty formatting of the file 
     // with 4 spaces as indentation
     fs.writeFile(path, JSON.stringify(data, null, 4), (err) => {
@@ -48,8 +45,8 @@ const writeConfig = (data, path = "./config.json") => {
 
 let fsWait = false;
 // watches the config, and calls the onChange function if the config has changed as soon as it isn't being used
-const watchConfig = (onChange) => {
-    fs.watch('./config.json', (event, filename) => {
+const watchConfig = (path, onChange) => {
+    fs.watch(path, (event, filename) => {
         // filename has to be set
         if (filename) {
             // if debounce is still running, ignore the event
