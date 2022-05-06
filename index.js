@@ -19,7 +19,7 @@ const { SlashCommandBuilder } = require('@discordjs/builders');
 client.login(config.token);
 
 const reloadConfig = () => {
-    console.log("updateing config!");
+    console.log("updating config!");
 
     // read the config, this is just a wrapper that handles errors
     Configure.readConfig(configJson, (value) => {
@@ -28,11 +28,16 @@ const reloadConfig = () => {
 
         updateSlashCommands();
     });
+};
 
+const reloadPronouns = () => {
+    console.log("updating pronouns!");
+
+    // read the config, this is just a wrapper that handles errors
     Pronouns.read(pronounsJson, (value) => {
         pronouns = value;
     })
-};
+}
 
 // update slash commands
 const updateSlashCommands = () => {
@@ -159,8 +164,9 @@ client.on('ready', () => {
     // log client user tag and set presence
     console.log(`Logged in as ${client.user.tag}!`);
 
-    // start watching the config
+    // start watching the configs
     Configure.watchConfig(configJson, reloadConfig);
+    Pronouns.watch(pronounJson, reloadPronouns);
 
     // update slash command list
     updateSlashCommands();
