@@ -139,9 +139,25 @@ const replacePronouns = (id, text) => {
     return doReplacing(pronouns.default);
 };
 
+// extracts the relevant data for updatePronouns
+const configPronouns = (interaction) => {
+    let id = interaction.member.id;
+    let data = interaction.options.data;
+
+    updatePronouns(id, data);
+}
+
+// updates the pronouns for a given user
 const updatePronouns = (id, data) => {
+
     console.log(pronouns[id]);
     
+    // if there is no value for the requesting user yet, add an empty entry
+    if (!pronouns[id]) {
+        pronouns[id] = {};
+    }
+
+    // set the pronouns
     for (let { name, value } of data) {
         pronouns[id][name] = value;
     }
@@ -152,9 +168,14 @@ const updatePronouns = (id, data) => {
     return true;
 }
 
+// redirects to the proper functions to
 const checkForConfigCommands = (interaction) => {
-    if (interaction.commandName == "pronouns") {
-        return updatePronouns(interaction.member.id, interaction.options.data);
+    const configCommands = {
+        "pronouns": configPronouns
+    };
+
+    if (configCommands[interaction.commandName]) {
+        return configCommands[interaction.commandName](interaction);
     }
     return false;
 }
@@ -166,7 +187,7 @@ client.on('ready', () => {
 
     // start watching the configs
     Configure.watchConfig(configJson, reloadConfig);
-    Pronouns.watch(pronounJson, reloadPronouns);
+    Pronouns.watch(pronounsJson, reloadPronouns);
 
     // update slash command list
     updateSlashCommands();

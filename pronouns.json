@@ -8,11 +8,11 @@
         "be": "are"
     },
     "181558073729613838": {
-        "subject": "they",
-        "object": "them",
-        "dependent_possessive": "their",
-        "independent_possessive": "theirs",
-        "reflexive": "themself",
+        "subject": "They",
+        "object": "Them",
+        "dependent_possessive": "Their",
+        "independent_possessive": "Theirs",
+        "reflexive": "Themself",
         "be": "are"
     }
 }
