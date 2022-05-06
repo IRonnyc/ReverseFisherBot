@@ -1,3 +1,5 @@
+// DEPRECATED
+
 var fetch = require("node-fetch");
 
 const getFormattedString = (source, type, params, then) => {

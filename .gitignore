@@ -2,6 +2,8 @@
 config.json
 config.json.bak
 
+pronouns.json
+
 # Logs
 logs
 *.log

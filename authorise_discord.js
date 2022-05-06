@@ -1,3 +1,5 @@
+// DEPRECATED
+
 const Discord = require('discord.js');
 
 // function to create the authorization function, that returns the function for the promise

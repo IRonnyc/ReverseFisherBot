@@ -1,3 +1,5 @@
+// DEPRECATED
+
 // set with all authorized users
 var authorizedUsers = new Set([]);
 
