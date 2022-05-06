@@ -180,6 +180,7 @@ client.on('interactionCreate', async (interaction) => {
     }
 
     if (checkForConfigCommands(interaction)) {
+        interaction.reply("Success");
         return;
     }
 
